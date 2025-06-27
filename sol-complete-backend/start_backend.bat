@@ -1,18 +1,40 @@
 @echo off
-echo 🚀 Starting Sol GPU-Accelerated Backend...
-echo 📋 Checking CUDA availability...
+echo 🔧 SOL ENVIRONMENT FIX - Python 3.12 Compatible
+echo 📋 Checking system...
 
-python -c "import cupy; print(f'✅ CUDA available: {cupy.cuda.is_available()}')" 2>nul || echo ⚠️ CuPy not installed yet
+REM Check CUDA
+nvidia-smi >nul 2>&1
+if %ERRORLEVEL% == 0 (
+    echo ✅ CUDA detected
+    set GPU_AVAILABLE=true
+) else (
+    echo ⚠️  CUDA not detected, using CPU mode
+    set GPU_AVAILABLE=false
+)
 
-echo 🔄 Installing requirements...
-pip install -r requirements.txt
+echo 🔄 Installing packages with compatibility fixes...
 
-echo 🌐 Starting backend...
-echo 📡 Server will be available at http://localhost:8000
-echo 📖 API docs at http://localhost:8000/docs
-echo 🛑 Press Ctrl+C to stop
+REM Upgrade pip first
+pip install --user --upgrade pip setuptools wheel
 
-REM Run the notebook
-jupyter nbconvert --to script complete_sol_backend.ipynb --execute
+REM Install compatible NumPy for Python 3.12
+echo 📦 Installing NumPy Python 3.12 compatible...
+pip install --user "numpy>=1.25.0"
+
+REM Install core packages
+echo 📦 Installing core packages...
+pip install --user fastapi uvicorn[standard] pandas requests python-multipart pydantic
+
+REM Try GPU packages if CUDA available
+if "%GPU_AVAILABLE%"=="true" (
+    echo 🚀 Attempting GPU packages...
+    pip install --user cudf-cu11 cupy-cuda11x || echo ⚠️  GPU packages failed, continuing with CPU
+)
+
+echo 🌐 Starting Sol backend server...
+echo 📡 Server will run on port 8000
+echo 🔗 Share the URL with Amrit when ready!
+
+python sol_backend_server.py
 
 pause
