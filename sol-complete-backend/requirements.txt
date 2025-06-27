@@ -1,0 +1,14 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pandas==2.1.4
+numpy==1.24.3
+cudf-cu11==23.12.*
+cupy-cuda11x==12.3.0
+sentence-transformers==2.2.2
+chromadb==0.4.18
+langchain==0.0.340
+langchain-community==0.0.1
+requests==2.31.0
+python-multipart==0.0.6
+psutil==5.9.6
+GPUtil==1.4.0
