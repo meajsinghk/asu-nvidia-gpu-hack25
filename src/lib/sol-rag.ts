@@ -350,7 +350,9 @@ Please provide a helpful response about GPU programming and performance analysis
         return this.generateTemplateResponse(params.message);
       }
     }
-    /**
+  }
+
+  /**
    * Generate template-based performance analysis when LLM is unavailable
    */
   private generateTemplateAnalysis(params: {
