@@ -1,15 +1,41 @@
 'use server';
 
-import { analyzePerformanceDifferences } from '@/ai/flows/analyze-performance-differences';
-import type { AnalyzePerformanceInput } from '@/ai/flows/analyze-performance-differences';
-import { runInMultiverse } from '@/ai/flows/multiverse-flow';
-import type { MultiverseInput, MultiverseOutput } from '@/ai/flows/multiverse-flow';
-import { getLabChatResponse } from '@/ai/flows/lab-chat-flow';
-import type { LabChatInput, LabChatOutput } from '@/ai/flows/lab-chat-flow';
 import { solRag } from '@/lib/sol-rag';
+import { browserLLM } from '@/lib/browser-llm';
 
 // Sol Backend Integration
 const SOL_BACKEND_URL = process.env.NEXT_PUBLIC_SOL_BACKEND_URL || 'http://localhost:8000';
+
+// Type definitions
+export interface AnalyzePerformanceInput {
+  numpyCode: string;
+  cupyCode: string;
+  numpyExecutionResult: string;
+  cupyExecutionResult: string;
+  gpuMetrics: string;
+}
+
+export interface MultiverseInput {
+  pythonCode: string;
+}
+
+export interface MultiverseOutput {
+  universes?: Array<{
+    universeId: string;
+    parameters: string;
+    narrative: string;
+    simulatedMetrics: any;
+  }>;
+  error?: string;
+}
+
+export interface LabChatInput {
+  message: string;
+  context: any;
+  history: Array<{role: string; content: string}>;
+}
+
+export type LabChatOutput = string;
 
 export async function executeOnSol(code: string, type: 'numpy' | 'cupy') {
   try {
@@ -52,10 +78,29 @@ export async function getAiAnalysis(input: AnalyzePerformanceInput): Promise<str
       return solAnalysis;
     }
 
-    // Fallback to local Ollama analysis
-    console.log('🔄 Falling back to local Ollama analysis...');
-    const result = await analyzePerformanceDifferences(input);
-    return result.analysis;
+    // Fallback to browser LLM analysis
+    console.log('🔄 Falling back to browser LLM analysis...');
+    try {
+      const analysisPrompt = `Analyze the performance differences between NumPy (CPU) and CuPy (GPU) implementations:
+
+NumPy Code:
+${input.numpyCode}
+
+CuPy Code:  
+${input.cupyCode}
+
+NumPy Results: ${input.numpyExecutionResult}
+CuPy Results: ${input.cupyExecutionResult}
+GPU Metrics: ${input.gpuMetrics}
+
+Provide detailed analysis of GPU acceleration benefits and performance insights.`;
+
+      const response = await browserLLM.answerQuestion(analysisPrompt);
+      return response.content;
+    } catch (browserError) {
+      console.log('Browser LLM failed, using basic analysis...');
+      return generateBasicAnalysis(input);
+    }
   } catch (error: any) {
     console.error("AI analysis failed:", error);
     
@@ -156,10 +201,59 @@ export async function getMultiverseAnalysis(input: MultiverseInput): Promise<Mul
       return solResult;
     }
 
-    // Fallback to local Ollama analysis
-    console.log('🔄 Falling back to local Ollama multiverse analysis...');
-    const result = await runInMultiverse(input);
-    return result;
+    // Fallback to browser LLM multiverse analysis
+    console.log('🔄 Falling back to browser LLM multiverse analysis...');
+    try {
+      const multiversePrompt = `Simulate GPU code execution across multiple parallel universes with different parameters:
+
+Code:
+${input.pythonCode}
+
+Generate 3 different universe scenarios with varying GPU configurations and performance outcomes.`;
+
+      const response = await browserLLM.answerQuestion(multiversePrompt);
+      
+      return {
+        universes: [
+          {
+            universeId: "Universe Alpha",
+            parameters: "High-Performance Configuration",
+            narrative: response.content,
+            simulatedMetrics: {
+              executionTime: "0.12s",
+              warpOccupancy: "95%",
+              threadDivergence: "Minimal"
+            }
+          },
+          {
+            universeId: "Universe Beta", 
+            parameters: "Balanced Configuration",
+            narrative: "Alternative GPU configuration with moderate performance characteristics.",
+            simulatedMetrics: {
+              executionTime: "0.18s",
+              warpOccupancy: "78%",
+              threadDivergence: "Low"
+            }
+          }
+        ]
+      };
+    } catch (browserError) {
+      console.log('Browser LLM failed, using template multiverse...');
+      return {
+        universes: [
+          {
+            universeId: "Universe Template",
+            parameters: "Default Configuration",
+            narrative: "Template multiverse analysis - browser LLM unavailable.",
+            simulatedMetrics: {
+              executionTime: "0.15s",
+              warpOccupancy: "80%",
+              threadDivergence: "Moderate"
+            }
+          }
+        ]
+      };
+    }
   } catch (error: any) {
     console.error("Multiverse analysis failed:", error);
     const errorMessage = error.message || "An unknown error occurred";
@@ -182,9 +276,25 @@ export async function getLabChatResponseAction(input: LabChatInput): Promise<Lab
       return solResponse;
     }
 
-    // Fallback to local Ollama chat
-    const result = await getLabChatResponse(input);
-    return result;
+    // Fallback to browser LLM chat
+    console.log('🔄 Falling back to browser LLM chat...');
+    try {
+      const response = await browserLLM.answerQuestion(input.message, JSON.stringify(input.context));
+      return response.content;
+    } catch (browserError) {
+      console.log('Browser LLM failed, using template response...');
+      return `I'm having trouble connecting to both Sol's RAG system and the browser LLM. Here's a basic response about GPU computing:
+
+**Your Question**: ${input.message}
+
+**General GPU Computing Guidance**:
+- GPUs excel at parallel processing of large datasets
+- Consider data size, memory transfers, and operation complexity
+- Monitor GPU metrics like utilization and memory usage
+- CuPy typically outperforms NumPy for large arrays and parallel operations
+
+For more detailed analysis, please ensure the Sol backend is running or try refreshing to load the browser LLM models.`;
+    }
   } catch (error: any) {
     console.error("AI chat failed:", error);
     const errorMessage = error.message || "An unknown error occurred";
