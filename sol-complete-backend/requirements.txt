@@ -1,0 +1,16 @@
+# Sol Environment Compatible Requirements (Python 3.12)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pandas>=2.0.0
+numpy>=1.25.0
+requests>=2.31.0
+python-multipart>=0.0.6
+pydantic>=2.0.0
+
+# GPU packages (will install with fallback handling)
+# cudf-cu11>=23.10.0
+# cupy-cuda11x>=12.0.0
+
+# System monitoring (optional)
+# psutil>=5.9.0
+# GPUtil>=1.4.0
