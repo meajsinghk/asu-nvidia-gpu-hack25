@@ -25,17 +25,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/components/ui/sidebar";
-import { AIStatusIndicator } from "@/components/ai-status-indicator";
 
 type AppHeaderProps = {
   savedSessions: string[];
   onSave: (name: string) => void;
   onLoad: (name: string) => void;
   onToggleChat: () => void;
-  solBackendStatus?: 'checking' | 'connected' | 'disconnected';
 };
 
-export function AppHeader({ savedSessions, onSave, onLoad, onToggleChat, solBackendStatus = 'checking' }: AppHeaderProps) {
+export function AppHeader({ savedSessions, onSave, onLoad, onToggleChat }: AppHeaderProps) {
   const [sessionName, setSessionName] = useState("");
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const { toggleSidebar } = useSidebar();
@@ -62,27 +60,6 @@ export function AppHeader({ savedSessions, onSave, onLoad, onToggleChat, solBack
         <h1 className="text-3xl font-bold text-primary font-headline hidden sm:block">GPU Insights Lab</h1>
       </div>
       <div className="flex flex-wrap gap-2 items-center">
-        {/* AI Status Indicator */}
-        <AIStatusIndicator />
-        
-        {/* Sol Backend Status Indicator */}
-        <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-secondary text-sm">
-          <div className={`w-2 h-2 rounded-full ${
-            solBackendStatus === 'connected' ? 'bg-green-500' :
-            solBackendStatus === 'disconnected' ? 'bg-yellow-500' :
-            'bg-gray-400 animate-pulse'
-          }`} />
-          <span className={`hidden sm:inline ${
-            solBackendStatus === 'connected' ? 'text-green-700' :
-            solBackendStatus === 'disconnected' ? 'text-black' :
-            'text-gray-600'
-          }`}>
-            {solBackendStatus === 'connected' ? '🚀 Sol GPU Connected' :
-             solBackendStatus === 'disconnected' ? '⚠️ Simulation Mode' :
-             '🔍 Checking...'}
-          </span>
-        </div>
-        
         <AlertDialog open={isSaveOpen} onOpenChange={setIsSaveOpen}>
           <AlertDialogTrigger asChild>
             <Button variant="outline"><Save className="mr-2" /> Save Session</Button>
