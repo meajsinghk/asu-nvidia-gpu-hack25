@@ -176,7 +176,7 @@ curl -X POST "http://sol-server:8000/chat" \
 
 ---
 
-## 🚀 **Deployment for Friends**
+## 🚀 **Deployment**
 
 ### **Step 1:** Get Sol Access
 - Transfer `sol-complete-backend/` folder to Sol environment
